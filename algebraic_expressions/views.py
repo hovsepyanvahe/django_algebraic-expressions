@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, status
 
+from .helpers import evaluate_expression
 from .serializers import ExpressionSerializer
 
 
@@ -22,4 +23,6 @@ class ExpressionView(generics.GenericAPIView):
 
         expression = serializer.validated_data['expression']
 
-        return Response({"result": expression}, status=status.HTTP_200_OK)
+        result = evaluate_expression(expression)
+
+        return Response({"result": result}, status=status.HTTP_200_OK)
