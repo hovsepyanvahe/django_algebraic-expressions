@@ -1,11 +1,20 @@
-from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserSerializer, LoginSerializer
 
+from .serializers import UserSerializer, LoginSerializer, AlgebraicExpressionSerializer
+from .models import AlgebraicExpression
+
+
+from rest_framework.response import Response
+from rest_framework import generics, status
+
+from .helpers import evaluate_expression
+from .serializers import ExpressionSerializer
 
 class UserRegistration(generics.GenericAPIView):
     serializer_class = UserSerializer
@@ -36,3 +45,39 @@ class UserLoginView(generics.GenericAPIView):
             return Response({'token': token.key}, status=status.HTTP_200_OK)
 
         return Response({'error': 'Invalid credentials!'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ExpressionView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ExpressionSerializer
+
+    def get(self, request):
+        data = {
+            'test': 'test'
+        }
+
+        return Response(data)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        expression = serializer.validated_data['expression']
+
+        result = evaluate_expression(expression)
+
+        AlgebraicExpression.objects.create(
+            user=request.user,
+            expression=expression,
+            result=result
+        )
+
+        return Response({"result": result}, status=status.HTTP_200_OK)
+
+
+class UserExpressionsHistoryAPI(generics.ListAPIView):
+    serializer_class = AlgebraicExpressionSerializer
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        return AlgebraicExpression.objects.filter(user=self.request.user).order_by('-created_at')
