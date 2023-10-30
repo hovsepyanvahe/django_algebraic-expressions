@@ -1,18 +1,12 @@
 from django.contrib.auth import authenticate, login
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
-
-
-from .serializers import UserSerializer, LoginSerializer, AlgebraicExpressionSerializer
-from .models import AlgebraicExpression
-
-
 from rest_framework.response import Response
-from rest_framework import generics, status
 
+from .models import AlgebraicExpression
+from .serializers import UserSerializer, LoginSerializer, AlgebraicExpressionSerializer
 from .helpers import evaluate_expression
 from .serializers import ExpressionSerializer
 
@@ -69,9 +63,20 @@ class ExpressionView(generics.GenericAPIView):
         return Response({"result": result}, status=status.HTTP_200_OK)
 
 
+class ExpressionPaginationClass(LimitOffsetPagination):
+    default_limit = 10
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data
+        })
+
 class UserExpressionsHistoryAPI(generics.ListAPIView):
     serializer_class = AlgebraicExpressionSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = ExpressionPaginationClass
 
     def get_queryset(self):
         return AlgebraicExpression.objects.filter(user=self.request.user).order_by('-created_at')

@@ -23,4 +23,4 @@ class ExpressionSerializer(serializers.Serializer):
 class AlgebraicExpressionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlgebraicExpression
-        fields = ('expression', 'result', 'created_at')
+        fields = ('id', 'expression', 'result', 'created_at')

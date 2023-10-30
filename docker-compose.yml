@@ -30,6 +30,13 @@ services:
     ports:
       - "5432:5432"
 
+  react:
+    build:
+      context: ./algebraic_expressions_fe
+    ports:
+      - "8083:8083"
+    depends_on:
+      - app
 
 volumes:
   my-datavolume:
