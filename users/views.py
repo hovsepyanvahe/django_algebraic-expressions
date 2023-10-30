@@ -51,12 +51,6 @@ class ExpressionView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ExpressionSerializer
 
-    def get(self, request):
-        data = {
-            'test': 'test'
-        }
-
-        return Response(data)
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
